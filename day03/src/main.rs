@@ -46,6 +46,32 @@ fn compute_rates(one_counts: &[usize], numbers_len: usize) -> (u64, u64) {
     (gamma_rate, epsilon_rate)
 }
 
+fn compute_rate(
+    mut numbers: Vec<u64>,
+    digits: usize,
+    pick_bit: fn(usize, usize) -> bool,
+) -> Option<u64> {
+    let mut rate = None;
+
+    for position in (0..digits).rev() {
+        let ones_count = numbers
+            .iter()
+            .filter(|&number| (number >> position) & 1 == 1)
+            .count();
+
+        let picked_bit = pick_bit(ones_count, numbers.len()) as u64;
+
+        numbers.retain(|&number| (number >> position) & 1 == picked_bit);
+
+        if numbers.len() == 1 {
+            rate = Some(numbers[0]);
+            break;
+        }
+    }
+
+    rate
+}
+
 fn main() -> Result<(), Error> {
     let input = std::fs::read_to_string("./input")?;
     // Iterator over the lines of the input file.
@@ -76,6 +102,18 @@ fn main() -> Result<(), Error> {
         let (gamma_rate, epsilon_rate) = compute_rates(&one_counts, numbers.len());
 
         println!("Part 1: {}", gamma_rate * epsilon_rate);
+
+        let oxygen_rate = compute_rate(numbers.clone(), digits, |ones_count, len| {
+            2 * ones_count >= len
+        })
+        .unwrap();
+
+        let co2_rate = compute_rate(numbers.clone(), digits, |ones_count, len| {
+            2 * ones_count < len
+        })
+        .unwrap();
+
+        println!("Part 2: {}", oxygen_rate * co2_rate);
     } else {
         eprintln!("Input is empty");
     }
@@ -99,5 +137,22 @@ mod tests {
 
         assert_eq!(0b10110, gamma_rate);
         assert_eq!(0b01001, epsilon_rate);
+    }
+
+    #[test]
+    fn test2() {
+        let input = [
+            0b00100, 0b11110, 0b10110, 0b10111, 0b10101, 0b01111, 0b00111, 0b11100, 0b10000,
+            0b11001, 0b00010, 0b01010,
+        ];
+
+        assert_eq!(
+            Some(0b10111),
+            compute_rate(input.to_vec(), 5, |ones_count, len| 2 * ones_count >= len)
+        );
+        assert_eq!(
+            Some(0b01010),
+            compute_rate(input.to_vec(), 5, |ones_count, len| 2 * ones_count < len)
+        );
     }
 }
