@@ -180,14 +180,12 @@ func CountIntersects(segments []Segment) int {
 func main() {
 	input, err := ioutil.ReadFile("./input")
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic(err)
 	}
 
 	segments, err := parseInput(string(input))
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic(err)
 	}
 
 	fmt.Printf("Part 2: %d\n", CountIntersects(segments))
