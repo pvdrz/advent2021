@@ -30,28 +30,37 @@ type Segment struct {
 	t_max int64
 }
 
-func (segment *Segment) Points() []Point {
-	points_len := segment.t_max + 1
-	points := make([]Point, points_len)
-
-	for i := int64(0); i < points_len; i += 1 {
-		points[i] = Point{
+func (segment *Segment) forEachPoint(f func(int64, Point)) {
+	for i := int64(0); i <= segment.t_max; i += 1 {
+		f(i, Point{
 			x: segment.start.x + i*segment.slope.x,
 			y: segment.start.y + i*segment.slope.y,
-		}
+		})
 	}
+}
+
+func (segment *Segment) Points() []Point {
+	points := make([]Point, segment.t_max+1)
+
+	segment.forEachPoint(func(i int64, point Point) {
+		points[i] = point
+	})
 
 	return points
 }
 
 func (segment *Segment) Intersection(other *Segment) []Point {
+	if segment.t_max > other.t_max {
+		return other.Intersection(segment)
+	}
+
 	intersection := make([]Point, 0)
 
-	for _, point := range segment.Points() {
+	segment.forEachPoint(func(_ int64, point Point) {
 		if other.Contains(&point) {
 			intersection = append(intersection, point)
 		}
-	}
+	})
 
 	return intersection
 }
