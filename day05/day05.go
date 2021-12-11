@@ -27,11 +27,11 @@ type Point struct {
 type Segment struct {
 	start Point
 	slope Point
-	t_max uint64
+	t_max int64
 }
 
 func (segment *Segment) Points() []Point {
-	points_len := int64(segment.t_max) + 1
+	points_len := segment.t_max + 1
 	points := make([]Point, points_len)
 
 	for i := int64(0); i < points_len; i += 1 {
@@ -147,7 +147,7 @@ func ParseSegment(input string) (Segment, error) {
 		t_max = my
 	}
 
-	segment = Segment{start: Point{x: x0, y: y0}, slope: Point{x: mx / t_max, y: my / t_max}, t_max: uint64(t_max)}
+	segment = Segment{start: Point{x: x0, y: y0}, slope: Point{x: mx / t_max, y: my / t_max}, t_max: t_max}
 
 	return segment, nil
 }
