@@ -107,26 +107,19 @@ func ParseSegment(input string) (Segment, error) {
 	var y0 int64
 	var x1 int64
 	var y1 int64
+	var err error
 
-	if x, err := strconv.ParseInt(first_tuple[0], 10, 64); err != nil {
+	if x0, err = strconv.ParseInt(first_tuple[0], 10, 64); err != nil {
 		return segment, err
-	} else {
-		x0 = x
 	}
-	if y, err := strconv.ParseInt(first_tuple[1], 10, 64); err != nil {
+	if y0, err = strconv.ParseInt(first_tuple[1], 10, 64); err != nil {
 		return segment, err
-	} else {
-		y0 = y
 	}
-	if x, err := strconv.ParseInt(second_tuple[0], 10, 64); err != nil {
+	if x1, err = strconv.ParseInt(second_tuple[0], 10, 64); err != nil {
 		return segment, err
-	} else {
-		x1 = x
 	}
-	if y, err := strconv.ParseInt(second_tuple[1], 10, 64); err != nil {
+	if y1, err = strconv.ParseInt(second_tuple[1], 10, 64); err != nil {
 		return segment, err
-	} else {
-		y1 = y
 	}
 
 	mx := x1 - x0
