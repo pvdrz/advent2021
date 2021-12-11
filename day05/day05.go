@@ -25,10 +25,8 @@ type Point struct {
 }
 
 type Segment struct {
-	x0    int64
-	y0    int64
-	mx    int64
-	my    int64
+	start Point
+	slope Point
 	t_max uint64
 }
 
@@ -38,8 +36,8 @@ func (segment *Segment) Points() []Point {
 
 	for i := int64(0); i < points_len; i += 1 {
 		points[i] = Point{
-			x: segment.x0 + i*segment.mx,
-			y: segment.y0 + i*segment.my,
+			x: segment.start.x + i*segment.slope.x,
+			y: segment.start.y + i*segment.slope.y,
 		}
 	}
 
@@ -59,8 +57,8 @@ func (segment *Segment) Intersection(other *Segment) []Point {
 }
 
 func (segment *Segment) Contains(point *Point) bool {
-	my_is_zero := segment.my == 0
-	mx_is_zero := segment.mx == 0
+	my_is_zero := segment.slope.y == 0
+	mx_is_zero := segment.slope.x == 0
 
 	if my_is_zero {
 		if mx_is_zero {
@@ -68,29 +66,29 @@ func (segment *Segment) Contains(point *Point) bool {
 			panic("unreachable")
 		} else {
 			// horizontal
-			ty := point.y - segment.y0
-			tx := (point.x - segment.x0) / segment.mx
+			ty := point.y - segment.start.y
+			tx := (point.x - segment.start.x) / segment.slope.x
 
 			return (ty == 0) && (tx >= 0) && (tx <= int64(segment.t_max))
 		}
 	} else {
 		if mx_is_zero {
 			// vertical
-			ty := (point.y - segment.y0) / segment.my
-			tx := point.x - segment.x0
+			ty := (point.y - segment.start.y) / segment.slope.y
+			tx := point.x - segment.start.x
 
 			return (tx == 0) && (ty >= 0) && (ty <= int64(segment.t_max))
 		} else {
 			// any diagonal
-			tym := point.y - segment.y0
-			txm := point.x - segment.x0
+			tym := point.y - segment.start.y
+			txm := point.x - segment.start.x
 
-			if tym%segment.my != 0 && txm%segment.mx != 0 {
+			if tym%segment.slope.y != 0 && txm%segment.slope.x != 0 {
 				return false
 			}
 
-			ty := tym / segment.my
-			tx := txm / segment.mx
+			ty := tym / segment.slope.y
+			tx := txm / segment.slope.x
 
 			return (tx == ty) && (tx >= 0) && (tx <= int64(segment.t_max))
 		}
@@ -149,13 +147,13 @@ func ParseSegment(input string) (Segment, error) {
 		t_max = my
 	}
 
-	segment = Segment{x0: x0, y0: y0, mx: mx / t_max, my: my / t_max, t_max: uint64(t_max)}
+	segment = Segment{start: Point{x: x0, y: y0}, slope: Point{x: mx / t_max, y: my / t_max}, t_max: uint64(t_max)}
 
 	return segment, nil
 }
 
 func parseInput(input string) ([]Segment, error) {
-    input = strings.TrimSpace(input)
+	input = strings.TrimSpace(input)
 	lines := strings.Split(input, "\n")
 	segments := make([]Segment, len(lines))
 
