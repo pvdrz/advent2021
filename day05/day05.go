@@ -30,6 +30,10 @@ type Segment struct {
 	t_max int64
 }
 
+func (segment *Segment) isDiagonal() bool {
+	return segment.slope.x != 0 && segment.slope.y != 0
+}
+
 func (segment *Segment) forEachPoint(f func(int64, Point)) {
 	for i := int64(0); i <= segment.t_max; i += 1 {
 		f(i, Point{
@@ -197,5 +201,13 @@ func main() {
 		panic(err)
 	}
 
+    non_diag := make([]Segment, 0)
+    for _, segment := range segments {
+        if !segment.isDiagonal() {
+            non_diag = append(non_diag, segment)
+        }
+    }
+
+	fmt.Printf("Part 1: %d\n", CountIntersects(non_diag))
 	fmt.Printf("Part 2: %d\n", CountIntersects(segments))
 }
