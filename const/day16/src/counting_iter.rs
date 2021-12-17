@@ -1,6 +1,6 @@
 use crate::hexa;
 
-pub struct CountingIter<'a> {
+pub(crate) struct CountingIter<'a> {
     next_calls: usize,
     head: [bool; 4],
     buffer: &'a [u8],
@@ -8,7 +8,7 @@ pub struct CountingIter<'a> {
 }
 
 impl<'a> CountingIter<'a> {
-    pub const fn new(buffer: &'a [u8]) -> Self {
+    pub(crate) const fn new(buffer: &'a [u8]) -> Self {
         match buffer.split_first() {
             Some((&head, buffer)) => CountingIter {
                 next_calls: 0,
@@ -20,15 +20,11 @@ impl<'a> CountingIter<'a> {
         }
     }
 
-    pub const fn len(&self) -> usize {
-        4 * self.buffer.len() + (4 - self.pos)
-    }
-
-    pub const fn calls(&self) -> usize {
+    pub(crate) const fn calls(&self) -> usize {
         self.next_calls
     }
 
-    pub const fn next(mut self, msg: &'static str) -> (Self, bool) {
+    pub(crate) const fn next(mut self) -> (Self, bool) {
         self.next_calls += 1;
 
         let item = self.head[self.pos];
@@ -40,8 +36,6 @@ impl<'a> CountingIter<'a> {
                     next_calls: self.next_calls,
                     ..ego
                 }
-            } else {
-                panic!("{}", msg);
             }
         } else {
             self.pos += 1;

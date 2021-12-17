@@ -1,4 +1,4 @@
-pub const fn to_binary(c: u8) -> [bool; 4] {
+pub(crate) const fn to_binary(c: u8) -> [bool; 4] {
     match c.to_ascii_uppercase() {
         b'0' => [false, false, false, false],
         b'1' => [false, false, false, true],

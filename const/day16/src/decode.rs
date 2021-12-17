@@ -3,14 +3,13 @@ use crate::counting_iter::CountingIter;
 const fn extract_usize<'a>(
     mut bits: CountingIter<'a>,
     len_bits: usize,
-    msg: &'static str,
 ) -> (usize, CountingIter<'a>) {
     let mut i = 0;
     let mut int = 0;
     while i < len_bits {
         int *= 2;
 
-        let (new_bits, bit) = bits.next(msg);
+        let (new_bits, bit) = bits.next();
         bits = new_bits;
 
         if bit {
@@ -29,11 +28,11 @@ macro_rules! eval_bin {
             mut bits: CountingIter<'_>,
             version_acc: usize,
         ) -> (usize, usize, CountingIter<'_>) {
-            let (new_bits, length_type_id) = bits.next("Missing length_type_id");
+            let (new_bits, length_type_id) = bits.next();
             bits = new_bits;
 
             if length_type_id {
-                let (subpacket_count, new_bits) = extract_usize(bits, 11, "Missing bit in subpacket count");
+                let (subpacket_count, new_bits) = extract_usize(bits, 11);
                 bits = new_bits;
 
                 if subpacket_count != 2 {
@@ -49,7 +48,7 @@ macro_rules! eval_bin {
                     bits,
                 )
             } else {
-                let (total_length, new_bits) = extract_usize(bits, 15, "Missing bit in total length");
+                let (total_length, new_bits) = extract_usize(bits, 15);
                 bits = new_bits;
 
                 let currently_used = bits.calls();
@@ -77,12 +76,11 @@ macro_rules! eval_fold {
             mut version_acc: usize,
             mut acc: usize,
         ) -> (usize, usize, CountingIter<'_>) {
-            let (new_bits, length_type_id) = bits.next("Missing length_type_id");
+            let (new_bits, length_type_id) = bits.next();
             bits = new_bits;
 
             if length_type_id {
-                let (subpacket_count, new_bits) =
-                    extract_usize(bits, 11, "Missing bit in subpacket count");
+                let (subpacket_count, new_bits) = extract_usize(bits, 11);
                 bits = new_bits;
 
                 let mut i = 0;
@@ -96,8 +94,7 @@ macro_rules! eval_fold {
                     i += 1;
                 }
             } else {
-                let (total_length, new_bits) =
-                    extract_usize(bits, 15, "Missing bit in total length");
+                let (total_length, new_bits) = extract_usize(bits, 15);
                 bits = new_bits;
 
                 let currently_used = bits.calls();
@@ -116,17 +113,17 @@ macro_rules! eval_fold {
     };
 }
 
-pub const fn evall(s: &[u8]) -> (usize, usize) {
+pub(crate) const fn eval(s: &[u8]) -> (usize, usize) {
     let iter = CountingIter::new(s);
     let (version_sum, res, _) = eval_inner(iter);
     (version_sum, res)
 }
 
-pub const fn eval_inner(mut bits: CountingIter<'_>) -> (usize, usize, CountingIter<'_>) {
-    let (version, new_bits) = extract_usize(bits, 3, "Missing bit in version");
+const fn eval_inner(mut bits: CountingIter<'_>) -> (usize, usize, CountingIter<'_>) {
+    let (version, new_bits) = extract_usize(bits, 3);
     bits = new_bits;
 
-    let (kind, new_bits) = extract_usize(bits, 3, "Missing bit in kind");
+    let (kind, new_bits) = extract_usize(bits, 3);
     bits = new_bits;
 
     const fn add(x: usize, y: usize) -> usize {
@@ -159,21 +156,13 @@ pub const fn eval_inner(mut bits: CountingIter<'_>) -> (usize, usize, CountingIt
     eval_bin!(eval_eq, ==);
 
     match kind {
-        // Sum
         0 => eval_add(bits, version, 0),
-        // Prod
         1 => eval_prod(bits, version, 1),
-        // Min
         2 => eval_min(bits, version, usize::MAX),
-        // Max
         3 => eval_max(bits, version, usize::MIN),
-        // Lit
         4 => eval_lit(bits, version),
-        // Gt
         5 => eval_gt(bits, version),
-        // Lt
         6 => eval_lt(bits, version),
-        // Eq
         7 => eval_eq(bits, version),
         _ => panic!("invalid payload kind"),
     }
@@ -182,11 +171,11 @@ pub const fn eval_inner(mut bits: CountingIter<'_>) -> (usize, usize, CountingIt
 const fn eval_lit(mut bits: CountingIter<'_>, version: usize) -> (usize, usize, CountingIter<'_>) {
     let mut literal = 0;
 
-    while bits.len() > 0 {
-        let (new_bits, more_packets) = bits.next("Missing continuation bit");
+    loop {
+        let (new_bits, more_packets) = bits.next();
         bits = new_bits;
 
-        let (val, new_bits) = extract_usize(bits, 4, "Missing bit in payload group");
+        let (val, new_bits) = extract_usize(bits, 4);
         bits = new_bits;
 
         literal *= 2usize.pow(4);
