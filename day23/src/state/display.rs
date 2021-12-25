@@ -7,7 +7,7 @@ impl<'a> std::fmt::Display for State<'a> {
             write!(f, "{}", y % 10)?;
         }
         write!(f, " <- y \n")?;
-        for x in 1..=5 {
+        for x in 1..=7 {
             write!(f, "{} ", x)?;
             for y in 1..=13 {
                 let pos = (x, y);
