@@ -1,5 +1,6 @@
 mod board;
 mod display;
+mod iter;
 
 use std::collections::BTreeMap;
 use Amphipod::*;
@@ -69,36 +70,5 @@ impl<'a> State<'a> {
         amphipods.insert((4, 10), (init[7], Some(Move::Hall)));
 
         Self { amphipods, board }
-    }
-
-    pub fn expand(self, board: &Board) -> Vec<(Self, Cost)> {
-        let State { board, amphipods } = self;
-        let original_ocupied: Vec<_> = amphipods.keys().cloned().collect();
-        let expanded_states = Vec::new();
-        for ((x, y), (amphipod, next_move)) in amphipods {
-            match next_move {
-                Some(Move::Hall) => {
-                    // this amphipod can move to a hall. Find all available halls and compute the
-                    // cost of moving it there.
-                    for ((tile_x, tile_y), tyle_ty) in &board {
-                        if *tyle_ty == Tile::Hall {
-                            // this distance is manhatan.
-                            let steps =
-                                x.max(*tile_x) - x.min(*tile_x) + y.max(*tile_y) - y.min(*tile_y);
-                            let cost = amphipod.cost(steps);
-                            let next_state = State {
-                                board: board.clone(),
-                                amphipods,
-                            };
-                        }
-                    }
-                }
-                Some(Move::Room) => todo!(),
-                None => {
-                    // Can't move more, another one will need to move
-                }
-            }
-        }
-        expanded_states
     }
 }
